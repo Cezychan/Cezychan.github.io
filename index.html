@@ -27,13 +27,13 @@
                 background:
 
                 linear-gradient(
-                    rgba(66,66,66,0.03) 1px,
+                    rgba(66,66,66,0.05) 1px,
                     transparent 1px
                 ),
 
                 linear-gradient(
                     90deg,
-                    rgba(66,66,66,0.03) 1px,
+                    rgba(66,66,66,0.05) 1px,
                     transparent 1px
                 );
 
@@ -59,9 +59,9 @@
                 height:900px;
 
                 border:1px solid rgba(66,66,66,0.36);
-                background:rgba(255,100,100,1);
+                background:rgba(100,100,200,1);
                 border-radius:50%;
-                opacity:0.5;
+                opacity:0.7;
 
                 transform: translate3d(0,0,0);
                 will-change: transform;
@@ -72,7 +72,7 @@
                 inset:0;
                 border-radius:70%;
 
-                background:rgba(242,0,0,0.55);
+                background:rgba(0,100,200,0.55);
 
                 filter: blur(20px);
                 transform: scale(1.05);
@@ -461,7 +461,7 @@
                 this.speedX = (Math.random()-0.5) * 0.08;
                 this.speedY = (Math.random()-0.5) * 0.08;
 
-                this.alpha = Math.random() * 0.3 + 0.35;
+                this.alpha = Math.random() * 0.3 + 0.55;
             }
 
             update(){
@@ -559,7 +559,7 @@
 
             ctx.clearRect(0,0,width,height);
 
-            // 背景渐层暗雾
+            // 背景渐层雾
             const gradient = ctx.createRadialGradient(
                 width/2,
                 height/2,
@@ -569,8 +569,8 @@
                 width*0.7
             );
 
-            gradient.addColorStop(0,"rgba(232,232,232,0.15)");
-            gradient.addColorStop(1,"rgba(242,242,242,0.92)");
+            gradient.addColorStop(0,"rgba(255,255,255,0.05)");
+            gradient.addColorStop(1,"rgba(0,0,0,0.92)");
 
             ctx.fillStyle = gradient;
             ctx.fillRect(0,0,width,height);
@@ -673,12 +673,13 @@
             };
         });
 
-        function animateCircles(){
+        function animateCircles(time){
 
             circles.forEach((el, i) => {
 
                 const state = circleState[i];
 
+                const hue = (time * 0.02 + i * 120) % 360;
                 // 更新中心点（窗口缩放/布局变化）
                 const rect = el.getBoundingClientRect();
                 state.cx = rect.left + rect.width / 2;
@@ -715,6 +716,9 @@
 
                 el.style.transform = `
                     translate3d(${state.x}px, ${state.y}px, 0)
+                `;
+                el.style.filter = `
+                    hue-rotate(${hue}deg)
                 `;
             });
 

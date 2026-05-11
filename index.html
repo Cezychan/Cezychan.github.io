@@ -3,9 +3,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Floating Particle Typography</title>
+        <title>Cezy-3DAnimation</title>
         <style>
-
             *{
                 margin:0;
                 padding:0;
@@ -23,9 +22,7 @@
             .fui-background{
                 position:fixed;
                 inset:0;
-
                 background:
-
                 linear-gradient(
                     rgba(66,66,66,0.05) 1px,
                     transparent 1px
@@ -36,21 +33,44 @@
                     rgba(66,66,66,0.05) 1px,
                     transparent 1px
                 );
-
                 background-size:40px 40px;
-
                 opacity:1;
-
                 z-index:0;
             }
+
+            canvas{
+                position:fixed;
+                inset:0;
+                width:100%;
+                height:100%;
+                display:block;
+            }
+            
+            #bgCanvas{
+                position:fixed;
+                inset:0;
+                z-index:0;
+            }   
 
             .hud{
                 position:fixed;
                 inset:0;
-
                 pointer-events:none;
+                z-index:2;
+            }
 
-                z-index:1;
+            #fogCanvas{
+                position:fixed;
+                inset:0;
+                z-index:5;
+                pointer-events:none;
+            }
+
+            #particleCanvas{
+                position:fixed;
+                inset:0;
+                z-index:10;
+                pointer-events:none;
             }
 
             .tech-circle{
@@ -71,12 +91,10 @@
                 position:absolute;
                 inset:0;
                 border-radius:70%;
-
                 background:rgba(0,100,200,0.55);
 
                 filter: blur(20px);
                 transform: scale(1.05);
-
                 z-index:-1;
             }
             .tech-circle-1{
@@ -86,24 +104,6 @@
             .tech-circle-2{
                 left:-10%;
                 top:-22%;
-            }
-
-            .text-title{
-                margin-left:5px;
-                font-size:12px;
-                letter-spacing:3px;
-                font-weight:2000;
-                color:rgba(242,66,66,0.45);
-                font-family:Helvetica, Arial, sans-serif;
-            }
-            .text-sub{
-                margin-top:-10px;
-                font-size:43px;
-                font-weight:1000;
-                letter-spacing:0px;
-                color:rgba(242,242,242,0.95);
-                font-family:Helvetica, Arial, sans-serif;
-                white-space: nowrap;
             }
            
             .panel{
@@ -133,6 +133,15 @@
                 border:none;
                 opacity:1;
             }
+            .text-sub{
+                margin-top:-10px;
+                font-size:43px;
+                font-weight:1000;
+                letter-spacing:0px;
+                color:rgba(242,242,242,0.95);
+                font-family:Helvetica, Arial, sans-serif;
+                white-space: nowrap;
+            }
             .logo{
                 width:120px;
                 height:auto;
@@ -143,24 +152,13 @@
 
             .crosshair{
                 position:absolute;
-
                 left:50%;
                 top:50%;
-
                 width:120px;
                 height:120px;
-
                 transform:translate(-50%,-50%);
                 border:1px solid rgba(66,66,66,0.04);
                 border-radius:50%;
-            }
-
-            canvas{
-                position:relative;
-                z-index:2;
-                display:block;
-                width:100%;
-                height:100%;
             }
 
             .hint{
@@ -176,33 +174,22 @@
             }
 
             .enter-button{
-
                 position:fixed;
-
                 left:50%;
                 bottom:42px;
-
                 transform:translateX(-50%);
-
                 width:64px;
                 height:64px;
 
                 border-radius:50%;
-
                 border:1px solid rgba(66,66,66,0.18);
-
                 display:flex;
                 align-items:center;
                 justify-content:center;
-
                 background:rgba(66,66,66,0.03);
-
                 backdrop-filter: blur(10px);
-
                 text-decoration:none;
-
                 opacity:0.65;
-
                 transition:
                     transform 0.4s ease,
                     background 0.4s ease,
@@ -210,23 +197,16 @@
                     opacity 0.4s ease;
 
                 z-index:100;
-
                 animation: floatArrow 3s ease-in-out infinite;
             }
-
             .enter-button:hover{
-
                 cursor:pointer;
-
                 transform:
                     translateX(-50%)
                     translateY(-8px)
                     scale(1.08);
-
-                background:rgba(66,66,66,0.08);
-
+                background:rgba(66,66,66,0.15);
                 border-color:rgba(66,66,66,0.4);
-
                 opacity:1;
             }
 
@@ -284,12 +264,12 @@
                     transform:translateY(0px);
                 }
             }
-
         </style>
     </head>
 
     <body>
         <div class="fui-background"></div>
+
         <div class="hud">
             <div class="grid-lines"></div>
             <div class="tech-circle tech-circle-1"></div>
@@ -304,7 +284,9 @@
                 <img class="logo" src="logo_Cezy.png" alt="logo">
         </div>
 
-        <canvas id="canvas"></canvas>
+        <canvas id="bgCanvas"></canvas>
+        <canvas id="fogCanvas"></canvas>
+        <canvas id="particleCanvas"></canvas>  
 
         <a class="enter-button" href="main.html">
             <svg width="22" height="22" viewBox="0 0 24 24">
@@ -325,44 +307,40 @@
 
         <script>
 
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const particleCanvas = document.getElementById('particleCanvas');
+        const ctx = particleCanvas.getContext('2d');
+        const fogCanvas = document.getElementById('fogCanvas');
+        const fogCtx = fogCanvas.getContext('2d');
 
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-
+        let viewW = window.innerWidth;
+        let viewH = window.innerHeight;
         const DPR = window.devicePixelRatio || 1;
-
-        canvas.width = width * DPR;
-        canvas.height = height * DPR;
-
-        ctx.scale(DPR, DPR);
 
         const offscreen = document.createElement('canvas');
         const offCtx = offscreen.getContext('2d');
 
-        offscreen.width = width;
-        offscreen.height = height;
-
         const mouse = {
-            x: width * 0.5,
-            y: height * 0.5,
+            x: viewW,
+            y: viewH*0,
+
+            prevX: viewW * 0.5,
+            prevY: viewH * 0.5,
+
+            vx: 0,
+            vy: 0,
+
             radius: 140
-        };
-
-        const img = new Image();
-
-        img.src = "logo_Cezy.png";
-
-        img.onload = () => {
-            ctx.drawImage(img, width/2 - 150, height/2 - 150, 300, 300);
         };
 
         let textParticles = [];
         let dustParticles = [];
+        let burstParticles = [];
+        let flowTrails = [];
 
         /* =========================
-           TEXT PARTICLE
+           TEXT Particles
         ========================= */
 
         class TextParticle{
@@ -407,13 +385,16 @@
                 if(dist < mouse.radius){
 
                     let force = (mouse.radius - dist) / mouse.radius;
-
                     let angle = Math.atan2(dy,dx);
-
                     let push = force * 3.8;
 
                     this.vx += Math.cos(angle) * push;
                     this.vy += Math.sin(angle) * push;
+
+                    // 鼠标增殖
+                    if(Math.random() < 0.012){
+                        burstParticles.push(new BurstParticle(this.x,this.y));
+                    }
                 }
 
                 // 回弹
@@ -441,7 +422,7 @@
         }
 
         /* =========================
-           BACKGROUND DUST
+            DUST Particles - BG
         ========================= */
 
         class DustParticle{
@@ -453,8 +434,8 @@
 
             reset(){
 
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
+                this.x = Math.random() * viewW;
+                this.y = Math.random() * viewH;
 
                 this.size = Math.random() * 1.4 + 0.2;
 
@@ -469,11 +450,11 @@
                 this.x += this.speedX;
                 this.y += this.speedY;
 
-                if(this.x < 0) this.x = width;
-                if(this.x > width) this.x = 0;
+                if(this.x < 0) this.x = viewW;
+                if(this.x > viewW) this.x = 0;
 
-                if(this.y < 0) this.y = height;
-                if(this.y > height) this.y = 0;
+                if(this.y < 0) this.y = viewH;
+                if(this.y > viewH) this.y = 0;
             }
 
             draw(){
@@ -489,6 +470,124 @@
         }
 
         /* =========================
+           BRUST Particles - Mouse
+        ========================= */
+
+        class BurstParticle{
+
+            constructor(x,y){
+
+                this.x = x;
+                this.y = y;
+
+                this.vx = (Math.random()-0.5) * 1;
+                this.vy = (Math.random()-0.5) * 1;
+
+                this.life = 1;
+
+                this.size = Math.random()*1.1 + 0.5;
+            }
+
+            update(){
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                this.vx *= 0.96;
+                this.vy *= 0.96;
+
+                this.life -= 0.005;
+            }
+
+            draw(){
+
+                ctx.beginPath();
+
+                ctx.fillStyle = `rgba(66,66,66,${this.life})`;
+
+                ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+
+                ctx.fill();
+            }
+        }
+
+        /* =========================
+           FlowTrail - Mouse
+        ========================= */
+
+        class FlowTrail{
+
+            constructor(x,y,vx,vy){
+
+                this.x = x;
+                this.y = y;
+
+                this.vx = vx;
+                this.vy = vy;
+
+                this.life = 1;
+
+                this.size = Math.random()*18 + 12;
+
+                this.noise = Math.random() * Math.PI * 2;
+            }
+
+            update(time){
+
+                // 流体摆动
+                this.vx += Math.sin(time*0.001 + this.noise) * 0.02;
+                this.vy += Math.cos(time*0.0015 + this.noise) * 0.02;
+
+                // 阻尼
+                this.vx *= 0.96;
+                this.vy *= 0.96;
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 生命周期
+                this.life *= 0.965;
+            }
+
+            draw(){
+
+                const gradient = ctx.createRadialGradient(
+                    this.x,
+                    this.y,
+                    0,
+                    this.x,
+                    this.y,
+                    this.size
+                );
+
+                gradient.addColorStop(
+                    0,
+                    `rgba(255,255,255,${this.life * 0.08})`
+                );
+
+                gradient.addColorStop(
+                    1,
+                    `rgba(255,255,255,0)`
+                );
+
+                ctx.beginPath();
+
+                ctx.fillStyle = gradient;
+
+                ctx.arc(
+                    this.x,
+                    this.y,
+                    this.size,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.fill();
+            }
+        }
+
+
+        /* =========================
            CREATE TEXT
         ========================= */
 
@@ -496,9 +595,9 @@
 
             textParticles = [];
 
-            offCtx.clearRect(0,0,width,height);
+            offCtx.clearRect(0,0,viewW,viewH);
 
-            const fontSize = Math.min(width * 0.28, 340);
+            const fontSize = Math.min(viewW * 0.28, 340);
 
             offCtx.fillStyle = "white";
 
@@ -506,24 +605,17 @@
             offCtx.textBaseline = "middle";
 
             offCtx.font = `1000 ${fontSize}px Arial Black`;
-            offCtx.fillText("三维动画", width/2, height/2);
+            offCtx.fillText("三维动画", viewW/2, viewH/2);
 
-            /*
-            offCtx.font = `900 ${fontSize}px Arial Black`;
-            offCtx.fillText("三维动画", width/2, height/2 - 80);
-            offCtx.font = `900 120px Arial Black`;
-            offCtx.fillText("陈哲", width/2, height/2 + 140);
-            */
+            const data = offCtx.getImageData(0,0,viewW,viewH).data;
 
-            const data = offCtx.getImageData(0,0,width,height).data;
+            const gap = 4; //数量
 
-            const gap = 6;
+            for(let y=0; y<viewH; y+=gap){
 
-            for(let y=0; y<height; y+=gap){
+                for(let x=0; x<viewW; x+=gap){
 
-                for(let x=0; x<width; x+=gap){
-
-                    const index = (y * width + x) * 4;
+                    const index = (y * viewW + x) * 4;
 
                     if(data[index + 3] > 120){
 
@@ -552,29 +644,41 @@
         }
 
         /* =========================
-           ANIMATION
+           Vignette
+        ========================= */
+
+        function drawVignette(ctx, w, h){
+
+            ctx.clearRect(0,0,w,h);
+
+            const g = ctx.createRadialGradient(
+                w/2, h/2, 0,
+                w/2, h/2, w*0.75
+            );
+
+            g.addColorStop(0, "rgba(255,255,255,0.03)");
+            g.addColorStop(1, "rgba(0,0,0,0.95)");
+
+            ctx.fillStyle = g;
+            ctx.fillRect(0,0,w,h);
+        }
+
+        /* =========================
+           ALL-ANIMATION
         ========================= */
 
         function animate(time){
 
-            ctx.clearRect(0,0,width,height);
+            ctx.clearRect(0,0,viewW,viewH);
 
-            // 背景渐层雾
-            const gradient = ctx.createRadialGradient(
-                width/2,
-                height/2,
-                0,
-                width/2,
-                height/2,
-                width*0.7
-            );
+            // 0. BACKGROUND LAYER
+            bgCtx.clearRect(0,0,viewW,viewH);
 
-            gradient.addColorStop(0,"rgba(255,255,255,0.05)");
-            gradient.addColorStop(1,"rgba(0,0,0,0.92)");
 
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0,0,width,height);
+            // 5. FOG LAYER
+            drawVignette(fogCtx, viewW, viewH);
 
+            // 10. PARTICLE LAYER
             // dust
             for(let dust of dustParticles){
 
@@ -589,21 +693,42 @@
                 particle.draw();
             }
 
-            // 鼠标光晕
-            const glow = ctx.createRadialGradient(
-                mouse.x,
-                mouse.y,
-                0,
-                mouse.x,
-                mouse.y,
-                160
-            );
+            // burst Particles
+            for(let i = burstParticles.length-1; i>=0; i--){
 
-            glow.addColorStop(0,"rgba(66,66,66,0.06)");
-            glow.addColorStop(1,"rgba(66,66,66,0)");
+                const p = burstParticles[i];
+
+                p.update();
+                p.draw();
+
+                if(p.life <= 0){
+
+                    burstParticles.splice(i,1);
+                }
+            }
+
+            // Mouse 拖尾
+            for(let i = flowTrails.length - 1; i >= 0; i--){
+
+                const trail = flowTrails[i];
+
+                trail.update(time);
+                trail.draw();
+
+                if(trail.life < 0.02){
+
+                    flowTrails.splice(i,1);
+                }
+            }
+            // Mouse 光晕
+            const glow = ctx.createRadialGradient(
+                mouse.x, mouse.y, 0,
+                mouse.x, mouse.y, 160
+            );
+            glow.addColorStop(0,"rgba(255,255,255,0.2)");
+            glow.addColorStop(1,"rgba(242,242,242,0)");
 
             ctx.fillStyle = glow;
-
             ctx.beginPath();
             ctx.arc(mouse.x, mouse.y, 160, 0, Math.PI*2);
             ctx.fill();
@@ -617,8 +742,39 @@
 
         window.addEventListener('mousemove',(e)=>{
 
+            mouse.prevX = mouse.x;
+            mouse.prevY = mouse.y;
+
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+
+            mouse.vx = mouse.x - mouse.prevX;
+            mouse.vy = mouse.y - mouse.prevY;
+
+            // 创建流体拖尾
+            const speed = Math.sqrt(
+                mouse.vx * mouse.vx +
+                mouse.vy * mouse.vy
+            );
+
+            if(speed > 1){
+
+                flowTrails.push(
+
+                    new FlowTrail(
+                        mouse.x,
+                        mouse.y,
+                        mouse.vx * 0.12,
+                        mouse.vy * 0.12
+                    )
+                );
+            }
+
+            // 限制数量
+            if(flowTrails.length > 120){
+
+                flowTrails.shift();
+            }
         });
 
         window.addEventListener('touchmove',(e)=>{
@@ -627,34 +783,42 @@
             mouse.y = e.touches[0].clientY;
         });
 
-        window.addEventListener('resize',()=>{
+        function resize(){
 
-            width = window.innerWidth;
-            height = window.innerHeight;
+            viewW = window.innerWidth;
+            viewH = window.innerHeight;
 
-            canvas.width = width * DPR;
-            canvas.height = height * DPR;
+            offscreen.width = viewW;
+            offscreen.height = viewH;
 
-            ctx.scale(DPR,DPR);
+            const canvases = [bgCanvas, fogCanvas, particleCanvas];
 
-            offscreen.width = width;
-            offscreen.height = height;
+            canvases.forEach(c => {
 
+                c.width = viewW * DPR;
+                c.height = viewH * DPR;
+
+                const cctx = c.getContext('2d');
+                cctx.setTransform(1,0,0,1,0,0);
+                cctx.scale(DPR, DPR);
+            });
             createText();
             createDust();
-        });
+        }
+        window.addEventListener('resize', resize);
+        
 
         /* =========================
            INIT
         ========================= */
 
+        resize();
         createText();
         createDust();
-
         animate(0);
 
         /* =========================
-           circleAnimation
+           Circle Animation
         ========================= */
 
         const circles = document.querySelectorAll('.tech-circle');

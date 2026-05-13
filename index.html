@@ -120,8 +120,11 @@
                 border:1px solid rgba(66,66,66,0.08);
                 left:1.7%;
                 bottom:5%;
-                width:345px;
-                height:60px;
+                display:inline-flex;
+                align-items:center;
+                width:auto;
+                height:auto;
+                min-height:60px;
             }
             .panel-2{
                 right:5%;
@@ -134,13 +137,13 @@
                 opacity:1;
             }
             .text-sub{
-                margin-top:-10px;
-                font-size:43px;
+                font-size:clamp(24px, 2.4vw, 43px);
                 font-weight:1000;
                 letter-spacing:0px;
                 color:rgba(242,242,242,0.95);
-                font-family:Helvetica, Arial, sans-serif;
+                font-family:Helvetica, Arial,"PingFang SC","Microsoft YaHei", sans-serif;
                 white-space: nowrap;
+                line-height:1;
             }
             .logo{
                 width:120px;
